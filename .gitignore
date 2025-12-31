@@ -175,3 +175,6 @@ __marimo__/
 # Another
 .ponyinit
 pyproject.toml
+
+# SQLite data
+data/*.db
