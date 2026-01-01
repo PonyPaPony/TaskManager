@@ -1,8 +1,9 @@
 import argparse
-import logging
 import sys
 
 from task_manager.services import add_task, list_tasks, update_task_status, remove_task
+from task_manager.exceptions import ValidationError, TaskNotFoundError
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -47,13 +48,12 @@ def main():
 
     try:
         args.func(args)
-
-    except KeyboardInterrupt:
-        logging.info("Операция отменена")
-
-    except Exception as e:
-        logging.error("Ошибка выполнения команды")
-        logging.error(str(e))
+    except ValidationError as e:
+        print(e)
+        sys.exit(2)
+    except TaskNotFoundError as e:
+        print(e)
+        sys.exit(3)
 
 def handle_add(args):
     task = add_task(args.title, args.description)
@@ -70,22 +70,13 @@ def handle_ls(args):
         print(f"{task.id} | {task.status} | {task.title}")
 
 def handle_update(args):
-    updated = update_task_status(args.id, args.status)
-
-    if updated:
-        print(f"Задача {args.id} обновлена")
-    else:
-        print(f"Задача {args.id} не найдена")
-        sys.exit(1)
+    update_task_status(args.id, args.status)
+    print(f"Задача {args.id} обновлена")
 
 def handle_remove(args):
-    removed = remove_task(args.id)
+    remove_task(args.id)
+    print(f"Задача {args.id} удалена")
 
-    if removed:
-        print(f"Задача {args.id} удалена")
-    else:
-        print(f"Задача {args.id} не найдена")
-        sys.exit(1)
 
 
 if __name__ == '__main__':

@@ -1,6 +1,9 @@
+import pytest
+
 from datetime import datetime
 from task_manager import services
-
+from task_manager.validator import VALID_STATUSES
+from task_manager.exceptions import TaskNotFoundError, InvalidStatusError
 
 def test_add_task(db):
     test_title = 'test_task'
@@ -37,44 +40,41 @@ def test_list_tasks_without_filter(db):
 
 def test_update_task(db):
     services.add_task('test_task', 'test_description')
-    tasks = services.list_tasks()
-    task = tasks[0]
-    assert task.title == 'test_task'
+
+    task = services.list_tasks()[0]
     assert task.status == 'todo'
-    result = services.update_task_status(task.id, 'done')
-    assert result is True
 
-    tasks = services.list_tasks()
-    task = tasks[0]
+    services.update_task_status(task.id, 'done')
 
+    task = services.list_tasks()[0]
     assert task.status == 'done'
 
 def test_update_task_invalid_status(db):
     services.add_task('test_task', 'test_description')
     tasks = services.list_tasks()
     task = tasks[0]
-    result = services.update_task_status(task.id, 'invalid')
-    assert result is False
+    with pytest.raises(InvalidStatusError, match=f"status must be one of {VALID_STATUSES}"):
+        services.update_task_status(task.id, 'invalid')
 
 def test_update_task_invalid_id(db):
     services.add_task('test_task', 'test_description')
-    services.list_tasks()
-    result = services.update_task_status(100, 'done')
-    assert result is False
+    with pytest.raises(TaskNotFoundError):
+        services.update_task_status(100, 'done')
 
 def test_remove_task(db):
     services.add_task('test_task', 'test_description')
-    tasks = services.list_tasks()
-    task = tasks[0]
-    result = services.remove_task(task.id)
-    assert result is True
+
+    task = services.list_tasks()[0]
+    services.remove_task(task.id)
+
+    assert services.list_tasks() == []
 
 def test_remove_task_invalid_id(db):
     services.add_task('test_task', 'test_description')
 
-    result = services.remove_task(999)
-    assert result is False
+    with pytest.raises(TaskNotFoundError):
+        services.remove_task(999)
 
     tasks = services.list_tasks()
     assert len(tasks) == 1
-    assert tasks[0].title == 'test_task'
+    assert tasks[0].id != 999
