@@ -2,7 +2,9 @@ from task_manager.models import Task
 from task_manager.storage_sqlite import load_tasks, save_tasks
 from task_manager.validator import validate_task_id, validate_status, validate_title, validate_description
 from task_manager.exceptions import TaskNotFoundError
+
 from datetime import datetime
+
 
 def add_task(title: str, description: str | None) -> Task:
     validate_title(title)
@@ -14,7 +16,7 @@ def add_task(title: str, description: str | None) -> Task:
         id=next_id,
         title=title,
         description=description or None,
-        status="todo",
+        status='todo',
         created_at=datetime.now(),
     )
 
@@ -33,9 +35,6 @@ def list_tasks(status: str | None = None) -> list[Task]:
 
     return [task for task in tasks if task.status == status]
 
-
-
-
 def update_task_status(task_id: int, new_status: str):
     tasks = load_tasks()
 
@@ -45,7 +44,7 @@ def update_task_status(task_id: int, new_status: str):
     found = False
 
     for task in tasks:
-        if task_id != task.id:
+        if task.id != task_id:
             continue
         else:
             found = True
@@ -54,7 +53,7 @@ def update_task_status(task_id: int, new_status: str):
             break
 
     if not found:
-        raise TaskNotFoundError("task not found")
+        raise TaskNotFoundError("Task not found")
 
 def remove_task(task_id: int):
     validate_task_id(task_id)
@@ -70,4 +69,4 @@ def remove_task(task_id: int):
             break
 
     if not found:
-        raise TaskNotFoundError("task not found")
+        raise TaskNotFoundError("Task not found")

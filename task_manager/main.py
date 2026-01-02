@@ -1,48 +1,46 @@
 import argparse
 import sys
-
-from task_manager.services import add_task, list_tasks, update_task_status, remove_task
+from task_manager.services import add_task, list_tasks, remove_task, update_task_status
 from task_manager.exceptions import ValidationError, TaskNotFoundError
+from task_manager.cli_constants import ID_FLAGS, STATUS_FLAGS, STATUS_CHOICES
 
 
 def main():
     parser = argparse.ArgumentParser(
-        prog='task_manager',
-        description='''Task Manager CLI''',
+        prog="task_manager",
+        description="Task Manager CLI"
     )
 
-    subparsers = parser.add_subparsers(dest='command', required=True)
+    subparsers = parser.add_subparsers(dest="command", required=True)
 
     add = subparsers.add_parser("add")
     add.add_argument('-t', '--title', type=str, required=True, help="Add title")
     add.add_argument("-d", '--description', type=str, required=False, help="Add description")
-    add.set_defaults(func=handle_add)
+    add.set_defaults(func=handle_add_task)
 
-    lst = subparsers.add_parser("list")
-    lst.add_argument(
-        '-s',
-        '--status',
+    ls = subparsers.add_parser("list")
+    ls.add_argument(
+        STATUS_FLAGS,
         type=str,
-        choices=["todo", "in_progress", "done"],
+        choices=STATUS_CHOICES,
         help="Show target status"
     )
-    lst.set_defaults(func=handle_ls)
+    ls.set_defaults(func=handle_list)
 
-    update = subparsers.add_parser("update")
-    update.add_argument('-i', '--id', type=int, required=True, help="Update target id")
-    update.add_argument(
-        '-s',
-        '--status',
+    up = subparsers.add_parser("update")
+    up.add_argument(ID_FLAGS, type=int, required=True, help="Update task id")
+    up.add_argument(
+        STATUS_FLAGS,
         type=str,
         required=True,
-        choices=["todo", "in_progress", "done"],
+        choices=STATUS_CHOICES,
         help="Update target status"
     )
-    update.set_defaults(func=handle_update)
+    up.set_defaults(func=handle_update)
 
-    remove = subparsers.add_parser("remove")
-    remove.add_argument('-i', '--id', type=int, required=True, help="Remove target id")
-    remove.set_defaults(func=handle_remove)
+    rm = subparsers.add_parser("remove")
+    rm.add_argument(ID_FLAGS, type=int, required=True, help="Remove task id")
+    rm.set_defaults(func=handle_remove)
 
     args = parser.parse_args()
 
@@ -55,11 +53,11 @@ def main():
         print(e)
         sys.exit(3)
 
-def handle_add(args):
+def handle_add_task(args):
     task = add_task(args.title, args.description)
     print(f"Задача добавлена: id={task.id}")
 
-def handle_ls(args):
+def handle_list(args):
     tasks = list_tasks(args.status)
 
     if not tasks:
@@ -76,8 +74,6 @@ def handle_update(args):
 def handle_remove(args):
     remove_task(args.id)
     print(f"Задача {args.id} удалена")
-
-
 
 if __name__ == '__main__':
     main()

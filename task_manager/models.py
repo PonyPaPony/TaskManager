@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
+from collections.abc import Mapping
+from typing import Any
 
 
 @dataclass
@@ -12,28 +14,28 @@ class Task:
 
     def to_dict(self) -> dict:
         return {
-            "id": self.id,
-            "title": self.title,
-            "description": self.description,
-            "status": self.status,
-            "created_at": self.serialize_created_at(),
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'status': self.status,
+            'created_at': self.serialize_created_at()
         }
 
     @classmethod
-    def from_row(cls, row):
+    def from_row(cls, row: Mapping[str, Any]) -> 'Task':
         return cls(
-            id=row["id"],
-            title=row["title"],
-            description=row["description"],
-            status=row["status"],
-            created_at=cls.parse_created_at(row["created_at"]),
+            id=row['id'],
+            title=row['title'],
+            description=row['description'],
+            status=row['status'],
+            created_at=cls.parse_created_at(row['created_at']),
         )
 
     def serialize_created_at(self) -> str:
         return self.created_at.isoformat()
 
     @staticmethod
-    def parse_created_at(value: str) -> datetime:
+    def parse_created_at(value: str | datetime) -> datetime:
         if isinstance(value, datetime):
             return value
         return datetime.fromisoformat(value)
